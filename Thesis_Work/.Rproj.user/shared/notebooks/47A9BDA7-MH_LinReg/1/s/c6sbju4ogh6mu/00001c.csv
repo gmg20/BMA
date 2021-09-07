@@ -1,0 +1,1 @@
+"0","plot(chain[-(1:burnIn),3], type = ""l"", xlab=""True = red"" , main = ""Chain values of sd"", )"

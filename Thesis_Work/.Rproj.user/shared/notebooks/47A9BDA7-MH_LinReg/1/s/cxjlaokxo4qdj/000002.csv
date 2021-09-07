@@ -1,0 +1,3 @@
+"0","posterior <- function(param){"
+"0","   return (likelihood(param) + prior(param))"
+"0","}"

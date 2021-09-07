@@ -1,0 +1,1 @@
+"0","hist(chain[-(1:burnIn),2],nclass=30, main=""Posterior Beta.1"", xlab=""True = red"")"
