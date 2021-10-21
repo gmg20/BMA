@@ -1,1 +1,0 @@
-"0","plot(chain[-(1:burnIn),2], type = ""l"", xlab=""True = red"" , main = ""Chain values of beta1"", )"

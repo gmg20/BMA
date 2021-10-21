@@ -1,1 +1,0 @@
-"0","hist(chain[-(1:burnIn),3],nclass=30, main=""Posterior Sigma"", xlab=""True = red"")"

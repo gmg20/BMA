@@ -1,2 +1,0 @@
-"0","par(mfrow = c(2,3))"
-"0","hist(chain[-(1:burnIn),1],nclass=30, main=""Intercept Posterior"", xlab=""True = red"")"

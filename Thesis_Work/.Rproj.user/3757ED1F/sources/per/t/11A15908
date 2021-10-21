@@ -1,6 +1,6 @@
 {
     "id": "11A15908",
-    "path": "C:/Users/gmg30/OneDrive/Desktop/R Work/Thesis_Work/BAS_Practice_Clean.R",
+    "path": "C:/Users/gmg30/Desktop/Projects/BMA/Thesis_Work/BAS_Practice_Clean.R",
     "project_path": "BAS_Practice_Clean.R",
     "type": "r_source",
     "hash": "1935913247",
@@ -17,11 +17,11 @@
         "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1629282660,
+    "lastKnownWriteTime": 1629282662,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1629282660126,
+    "last_content_update": 1629282662,
     "read_only": false,
     "read_only_alternatives": []
 }
