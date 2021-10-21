@@ -1,0 +1,1 @@
+Most files here are incomplete, and represent scripts I have written to try/practice various models and algorithms related to BMA and logistic regression. They will be updated eventually once finalized.
