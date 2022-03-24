@@ -6,16 +6,16 @@ library(cvms)
 library(DescTools)
 library(class)
 library(ISLR)
-library(psych)
 
-io1_filt <- read_csv("io1_filt2.csv")
-io1_filt<-io1_filt[,-c(1,3:4)]
+io1_filt <- read_csv("IO_BothLevels_Data.csv")
+io1_filt<-io1_filt[,1:34]
+io1_filt$TI2<-ifelse(io1_filt$TI>3,1,0)
 io1_filt$TI2<-as.factor(io1_filt$TI2)
-
+indxTrain<-createDataPartition(y=io1_filt$TI2,p=0.70,list=FALSE)
 
 set.seed(300)
 #Splitting data as training and test set. Using createDataPartition() function from caret
-indxTrain <- createDataPartition(y = io1_filt$TI2,p = 0.75,list = FALSE)
+indxTrain <- createDataPartition(y = io1_filt$TI2,p = 0.70,list = FALSE)
 training <- io1_filt[indxTrain,]
 testing <- io1_filt[-indxTrain,]
 
@@ -23,16 +23,6 @@ testing <- io1_filt[-indxTrain,]
 prop.table(table(training$TI2)) * 100
 prop.table(table(testing$TI2)) * 100
 prop.table(table(io1_filt$TI2)) * 100
-
-## Descriptives
-describeBy(training[2:10], training$TI2, digits = 1)
-
-#DataViz
-ggplot(training, aes(age, lmx)) + geom_point(aes(color=TI2))
-ggplot(training, aes(voice, lmx)) + geom_point(aes(color=TI2))
-ggplot(training, aes(caropp, paysatis)) + geom_jitter(aes(color=TI2))
-ggplot(training, aes(fair, proact)) + geom_point(aes(color=TI2))
-ggplot(training, aes(TI2, age)) + geom_boxplot(aes(color=TI2))
 
 ###LOGREG USING CARET
 # Fit model (no tuning parameters for GLM)
