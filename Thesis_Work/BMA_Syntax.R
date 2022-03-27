@@ -16,6 +16,8 @@ library(caret)
 
 library(randomForest)
 
+library(DescTools)
+
 ##################################################################################
 # Data Prep (All variables except T/O intent mean-centered already)
 
@@ -413,11 +415,10 @@ varImp(rf1)
 
 #  "na.action=omit" is the default for missing data  
 
-# "laplace" = TRUE specifies Laplace integration for marginal likelihood 
+# "laplace" = TRUE/FALSE specifies Laplace integration/Cephes estimation for marginal likelihood 
 
-# "Renormalization" is specified in order to calculate posterior model probabilities 
-# exactly after model space has been sampled, rather than used frequency-based approximations 
-# (done when data is noisy and convergence of MCMC routine is poor).
+# "Renormalization" =TRUE/FALSE specifies whether posterior model probs are calculated
+# using renormalization or approximated based on sampling frequencies.
 
 
 
@@ -429,9 +430,9 @@ BMA2 <- bas.glm(TI_risk ~ edu + manager + conhour + contype + lmx + infshare + v
                   HR3 + HR4 + HR5 + HR6 + HR7 + HR8 + HR9 + superboard + adv_board +
                   corp_entr + stratplan + entr_orient, data = training2, 
                 family = binomial(link = "logit"), betaprior = CCH(1, 2, 0), 
-                modelprior = beta.binomial(1,1),method = "MCMC", 
-                MCMC.iterations = 5000000, force.heredity = TRUE, 
-                renormalize = TRUE
+                modelprior = beta.binomial(1,1), method = "MCMC", 
+                MCMC.iterations = 50000000, force.heredity = TRUE,
+                renormalize = FALSE
 )
 
 #### DEFAULT BAS PRIOR
@@ -444,7 +445,7 @@ BMA2b <- bas.glm(TI_risk ~ edu + manager + conhour + contype + lmx + infshare + 
                 family = binomial(link = "logit"), 
                 modelprior = beta.binomial(1,1),method = "MCMC", 
                 MCMC.iterations = 5000000, force.heredity = TRUE, 
-                renormalize = TRUE
+                renormalize = FALSE
 )
 
 ##################################################################################
@@ -550,12 +551,13 @@ predicted_BMA2 <- predict(BMA2, newdata = testing2, estimator = "BMA", type="res
 
 names(predicted_BMA2) 
 
+# Ybma = linear predictor scale predictions (log odds)
 
-# Predicted Outcome Measure for newdata
+# fit = response scale predictions (probability of class membership)
+
+# Predicted probability of class membership  for new data
 
 predY_BMA2 <- predicted_BMA2$fit 
-
-head(predY_BMA2)
 
 
 # Predictive intervals for predictions (can't get this to work due to vector size)
@@ -565,14 +567,22 @@ BMA2.pred <- predict(BMA2, estimator = "BMA", predict = FALSE, se.fit = TRUE)
 confint(BMA2.pred)
 
 
-##################################################################################
+# Convert predicted probabilities to classifications
+
+pred_class_BMA2<- ifelse(predY_BMA2 >= 0.5, 1, 0)
+
+pred_class_BMA2 <- factor(pred_class_BMA2)
+
 
 
 # Evaluation of BMA2 Predictive Performance 
 
 
-postResample(predY_BMA2, obs = testing2$TI_risk)
+postResample(pred_class_BMA2, obs = testing2$TI_risk) # Accuracy/Kappa
 
+BrierScore(as.numeric(testing2$TI_risk), predY_BMA2)  # Brier Score
+
+confusionMatrix(pred_class_BMA2, testing2$TI_risk)    # Confusion Matrix
 
 ###################################################################################
 ####################################################################################
@@ -583,11 +593,11 @@ postResample(predY_BMA2, obs = testing2$TI_risk)
 
 # Fit Logistic Regression model using training dataset 2
 
-logregm2 <- lm(TI_risk ~ edu + manager + conhour + contype + lmx + infshare + voice +
-                 paysatis + fair + proact + caropp + N + FTEN + FTELY + employee_council +
-                 hr_rep + n_levels + n_deps + n_magers + familybiz + HR1 + HR2 +
-                 HR3 + HR4 + HR5 + HR6 + HR7 + HR8 + HR9 + superboard + adv_board +
-                 corp_entr + stratplan + entr_orient, data = training2) 
+logregm2 <- glm(TI_risk ~ edu + manager + conhour + contype + lmx + infshare + voice +
+                  paysatis + fair + proact + caropp + N + FTEN + FTELY + employee_council +
+                  hr_rep + n_levels + n_deps + n_magers + familybiz + HR1 + HR2 +
+                  HR3 + HR4 + HR5 + HR6 + HR7 + HR8 + HR9 + superboard + adv_board +
+                  corp_entr + stratplan + entr_orient, data = training2, family=binomial()) 
 
 
 # Model Summary
@@ -600,19 +610,27 @@ confint(logregm2)
 
 
 
-# Predictions for new data (testing set 1)
+# Predicted Probabilities for new data (testing set 2)
 
-predY_logreg2 <- predict(logregm2, newdata = testing2)
+predY_logreg2 <- predict(logregm2, newdata = testing2, type = "response")
 
 head(predY_logreg2)
 
 
+# Convert Predicted Probabilities to Classifications
 
-# Evaluation of OLS Predictive Performance (BMA wins!)
+pred_class_logreg2<- ifelse(predY_logreg2 >= 0.5, 1, 0)
 
-postResample(predY_logreg2, obs = testing2$TI_risk)
+pred_class_logreg2 <- factor(pred_class_logreg2)
 
 
+# Evaluation of LogReg Predictive Performance 
+
+postResample(pred_class_logreg2, obs = testing2$TI_risk) # Accuracy/Kappa
+
+BrierScore(as.numeric(testing2$TI_risk), predY_logreg2)  # Brier Score
+
+confusionMatrix(pred_class_logreg2, testing2$TI_risk)    # Confusion Matrix
 
 ######################################################################################
 ###################################################################################
@@ -635,21 +653,37 @@ rf2 <- train(TI_risk ~ edu + manager + conhour + contype + lmx + infshare + voic
                paysatis + fair + proact + caropp + N + FTEN + FTELY + employee_council +
                hr_rep + n_levels + n_deps + n_magers + familybiz + HR1 + HR2 +
                HR3 + HR4 + HR5 + HR6 + HR7 + HR8 + HR9 + superboard + adv_board +
-               corp_entr + stratplan + entr_orient
-             , data = training2, trControl = ctrl1, method = "rf", na.action = na.omit)
+               corp_entr + stratplan + entr_orient,
+              data = training2, trControl = ctrl1, method = "rf", na.action = na.omit)
 
 
 
-# Predictions for new data (testing set 1)
+# Predictions for new data (testing set 2)
 
-predY_RF2 <- predict(rf2, newdata = testing2)
+predY_RF2 <- predict(rf2, newdata = testing2, type = "prob")
 
 head(predY_RF2)
 
 
-# Evaluation of RF Regression Predictive Performance (RMSE)  #BMA does better!
+# Convert Predicted Probabilities to Classifications
 
-postResample(predY_RF2, obs = testing2$TI_risk)
+pred_class_RF2<- ifelse(predY_RF2[,2] >= 0.5, 1, 0)
+
+pred_class_RF2<-factor(pred_class_RF2)
+
+
+# Predictor Variable Importance
+
+varImp(rf2)
+
+
+# Evaluation of RF Regression Predictive Performance
+
+postResample(pred_class_RF2, obs = testing2$TI_risk) # Accuracy/Kappa
+
+BrierScore(as.numeric(testing2$TI_risk), predY_RF2[,2])  # Brier Score
+
+confusionMatrix(pred_class_RF2, testing2$TI_risk)    # Confusion Matrix
 
 ####################################################################################
 #################################################################################
