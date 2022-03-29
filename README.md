@@ -1,8 +1,8 @@
 ## Bayesian Model Averaging
 
-Contains compilation of files and scripts related to Bayesian Model Averaging, mostly as it pertains to my M.A. thesis 
-
-Most files here are incomplete, and represent scripts I have written to try/practice various models and algorithms related to BMA and logistic regression. They will be updated eventually once finalized.
+Contains compilation of files and scripts related to Bayesian Model Averaging, mostly as it pertains to my M.A. thesis.
+ * Compared predictive performance of Random Forest Regression/Classifiers, OLS/Logistic regression, and Bayesian Model Averaging in predicting employee turnover intentions and flight risk status (regression and classification contexts)
+ * Evaluated out-of-sample generalizability using train/test split 
 
  * ML_LinReg files are a modified version of base script originally posted by Dr. Florian Hartig
  * https://theoreticalecology.wordpress.com/2010/09/17/metropolis-hastings-mcmc-in-r/
