@@ -18,6 +18,10 @@ library(randomForest)
 
 library(DescTools)
 
+library(rwa)
+
+library(dominanceanalysis)
+
 ##################################################################################
 # Data Prep (All variables except T/O intent mean-centered already)
 
@@ -228,7 +232,7 @@ image(BMA1, rotate = F)
 
 # Regression Coefficients
 
-BMA1coefs <- coef(BMA1)
+BMA1coefs <- coef(BMA1, digits = 2)
 
 BMA1coefs
 
@@ -262,6 +266,9 @@ plot(confint(BMA1coefs, parm = 30:35))
 
 plot(BMA1coefs, ask = F) # subset argument can be used to specify specific predictors
 
+
+# Histogram of shrinkage/regularization term sample frequencies (g/1+g)
+hist(BMA1$shrinkage)
 
 #####################################################################################
 
@@ -326,11 +333,13 @@ olsm1 <- lm(TI ~ edu + manager + conhour + contype + lmx + infshare + voice +
 
 summary(olsm1) 
 
-# 95% CI for Regression Coefficients (Unstandardized)
+# 95% CI for Regression Coefficients (Standardized)
 
-confint(olsm1) 
+confint(olsm1)    # Unstandardized
+effectsize(olsm1) # Standardized
 
-
+# Dominance Analysis (Predictor "Importance")
+dominanceAnalysis(x = olsm1)
 
 # Predictions for new data (testing set 1)
 
@@ -343,8 +352,6 @@ head(predY_OLS1)
 # Evaluation of OLS Predictive Performance (BMA wins!)
 
 postResample(predY_OLS1, obs = testing1$TI)
-
-
 
 ######################################################################################
 ###################################################################################
@@ -388,7 +395,7 @@ head(predY_RF1)
 postResample(predY_RF1, obs = testing1$TI)
 
 
-# Variable Importance for RF if desired to compare to PIPs
+# Variable Importance for RF
 
 varImp(rf1)
 
@@ -429,23 +436,10 @@ BMA2 <- bas.glm(TI_risk ~ edu + manager + conhour + contype + lmx + infshare + v
                   hr_rep + n_levels + n_deps + n_magers + familybiz + HR1 + HR2 +
                   HR3 + HR4 + HR5 + HR6 + HR7 + HR8 + HR9 + superboard + adv_board +
                   corp_entr + stratplan + entr_orient, data = training2, 
-                family = binomial(link = "logit"), betaprior = CCH(1, 2, 0), 
-                modelprior = beta.binomial(1,1), method = "MCMC", 
-                MCMC.iterations = 50000000, force.heredity = TRUE,
-                renormalize = FALSE
-)
-
-#### DEFAULT BAS PRIOR
-
-BMA2b <- bas.glm(TI_risk ~ edu + manager + conhour + contype + lmx + infshare + voice +
-                  paysatis + fair + proact + caropp + N + FTEN + FTELY + employee_council +
-                  hr_rep + n_levels + n_deps + n_magers + familybiz + HR1 + HR2 +
-                  HR3 + HR4 + HR5 + HR6 + HR7 + HR8 + HR9 + superboard + adv_board +
-                  corp_entr + stratplan + entr_orient, data = training2, 
-                family = binomial(link = "logit"), 
-                modelprior = beta.binomial(1,1),method = "MCMC", 
-                MCMC.iterations = 5000000, force.heredity = TRUE, 
-                renormalize = FALSE
+                 family = binomial(link = "logit"), betaprior = CCH(1.9, 2, 0), 
+                  modelprior = uniform(), method = "MCMC", 
+                 MCMC.iterations = 50000000, force.heredity = TRUE,
+                  renormalize = FALSE
 )
 
 ##################################################################################
@@ -532,6 +526,10 @@ plot(confint(BMA2coefs, parm = 30:35))
 plot(BMA2coefs, ask = F) # subset argument can be used to specify specific predictors
 
 
+# Histogram of shrinkage/regularization term sample frequencies (g/1+g)
+hist(BMA2$shrinkage)
+
+
 #####################################################################################
 
 # Fitted Values for current data and Prediction of new data
@@ -604,10 +602,14 @@ logregm2 <- glm(TI_risk ~ edu + manager + conhour + contype + lmx + infshare + v
 
 summary(logregm2) 
 
-# 95% CI for Regression Coefficients (Unstandardized)
+# 95% CI for Regression Coefficients 
 
-confint(logregm2) 
+confint(logregm2)    # Unstandardized
+effectsize(logregm2) # Standardized
 
+
+# Dominance Analysis (Predictor "Importance")
+dominanceAnalysis(x = logregm2)
 
 
 # Predicted Probabilities for new data (testing set 2)
